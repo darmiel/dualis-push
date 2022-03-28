@@ -1,0 +1,4 @@
+[[runners]]
+    user = "daniel@dhbw.de"
+    password = "Ha7t3Fax8VBx3sstB8svv"
+    cron = "*/10 * * * * *" # every 10s
