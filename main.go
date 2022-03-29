@@ -14,10 +14,6 @@ import (
 	"syscall"
 )
 
-const (
-	APIUrl = "http://localhost:5001"
-)
-
 func init() {
 	log.SetHandler(cli.Default)
 	log.SetLevel(log.DebugLevel)
@@ -31,6 +27,8 @@ type Runner struct {
 
 	PushoverToken     string
 	PushoverRecipient string
+
+	api string
 }
 
 func main() {
@@ -47,6 +45,7 @@ func main() {
 
 	// parse runner config
 	type config struct {
+		API     string
 		Runners []Runner
 	}
 	var cfg config
@@ -55,8 +54,12 @@ func main() {
 		return
 	}
 
+	log.Infof("API: %s", cfg.API)
+
 	c := cron.New(cron.WithSeconds())
 	for _, r := range cfg.Runners {
+		r.api = cfg.API
+
 		if _, err := c.AddFunc(r.Cron, r.run); err != nil {
 			log.WithError(err).Fatalf("Cannot create cron func for user %s", r.User)
 			return
@@ -157,7 +160,7 @@ func (r *Runner) run() {
 			"X-Auth-User": r.User,
 			"X-Auth-Pass": r.Password,
 		}).
-		Get(APIUrl + "/dualis/api/v1.0/grades/")
+		Get(r.api + "/dualis/api/v1.0/grades/")
 
 	if err != nil {
 		log.WithError(err).Warn("cannot request grades.")
