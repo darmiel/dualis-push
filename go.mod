@@ -4,6 +4,8 @@ go 1.18
 
 require (
 	github.com/BurntSushi/toml v1.0.0 // indirect
+	github.com/PuerkitoBio/goquery v1.8.0 // indirect
+	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/apex/log v1.9.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/gregdel/pushover v1.1.0 // indirect
