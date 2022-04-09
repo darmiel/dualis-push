@@ -31,7 +31,7 @@ type Runner struct {
 	api string
 }
 
-func main() {
+func ma2in() {
 	// read runners config
 	var (
 		data []byte
