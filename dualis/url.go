@@ -18,6 +18,6 @@ func (u DualisURL) WithArguments(args string) string {
 	return string(u) + fmt.Sprintf("&ARGUMENTS=%s", args)
 }
 
-func app(name, args string) string {
+func App(name, args string) string {
 	return fmt.Sprintf("%s?APPNAME=CampusNet&PRGNAME=%s&ARGUMENTS=%s", DualisScriptURL, name, args)
 }
