@@ -44,8 +44,7 @@ func (c *Client) CourseResults() (err error) {
 			}
 
 			for _, ex := range exams {
-				log.Println("    > Topic:", ex.Topic)
-				log.Println("    > Grade:", ex.Grade)
+				log.Printf("    > %+v", ex)
 			}
 		}
 
