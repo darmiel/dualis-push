@@ -22,7 +22,9 @@ type Runner struct {
 	User     string
 	Password string
 	Cron     string
-	grades   dualis.Grades
+
+	grades dualis.Grades
+	check  bool
 
 	PushoverToken     string
 	PushoverRecipient string
@@ -113,6 +115,9 @@ func (r *Runner) run() {
 	}
 
 	log.Debugf("[%s] Comparing old with new grades and looking for updates ...", r.User)
-	r.grades.CheckForNewIn(grades, r.SendGradeUpdate)
+	if r.check { // ignore first fetch
+		r.grades.CheckForNewIn(grades, r.SendGradeUpdate)
+	}
+	r.check = true
 	r.grades = grades // update new grades
 }

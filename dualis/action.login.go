@@ -2,7 +2,6 @@ package dualis
 
 import (
 	"github.com/imroc/req/v3"
-	"log"
 )
 
 func Login(username, password string) (client *Client, err error) {
@@ -28,7 +27,6 @@ func Login(username, password string) (client *Client, err error) {
 	}
 
 	c.SetCommonCookies(loginReq.Cookies()...)
-	log.Println(c.Cookies, "::", loginReq.Cookies())
 	client = &Client{
 		c:       c,
 		refresh: refresh,
