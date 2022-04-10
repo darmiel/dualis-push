@@ -28,6 +28,8 @@ func (c *Client) ArgumentsFromRefresh() string {
 }
 
 // fixCookies fixes the retarded "Set-cookie" header sent by dualis
+// PR: https://github.com/golang/go/pull/52121 should fix this,
+// but it hasn't been accepted (yet)
 func fixCookies(req *req.Response) {
 	c := req.Header["Set-Cookie"]
 	for i, v := range c {

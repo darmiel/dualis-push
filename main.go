@@ -1,13 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/apex/log"
 	"github.com/apex/log/handlers/cli"
+	"github.com/darmiel/dualis-push/dualis"
 	"github.com/gregdel/pushover"
-	"github.com/imroc/req/v3"
 	"github.com/robfig/cron/v3"
 	"os"
 	"os/signal"
@@ -23,15 +22,13 @@ type Runner struct {
 	User     string
 	Password string
 	Cron     string
-	grades   Grades
+	grades   dualis.Grades
 
 	PushoverToken     string
 	PushoverRecipient string
-
-	api string
 }
 
-func ma2in() {
+func main() {
 	// read runners config
 	var (
 		data []byte
@@ -58,8 +55,6 @@ func ma2in() {
 
 	c := cron.New(cron.WithSeconds())
 	for _, r := range cfg.Runners {
-		r.api = cfg.API
-
 		if _, err := c.AddFunc(r.Cron, r.run); err != nil {
 			log.WithError(err).Fatalf("Cannot create cron func for user %s", r.User)
 			return
@@ -82,62 +77,14 @@ func ma2in() {
 	c.Stop()
 }
 
-type Grade struct {
-	Name               string `json:"name,omitempty"`
-	Date               string `json:"date,omitempty"`
-	Grade              string `json:"grade,omitempty"`
-	ExternallyAccepted bool   `json:"externally accepted,omitempty"`
-}
-
-func (g *Grade) Marshal() (res string, err error) {
-	var data []byte
-	if data, err = json.Marshal(g); err != nil {
-		return
-	}
-	res = string(data)
-	return
-}
-
-type Grades []*Grade
-
-func (g Grades) CheckForNewIn(other Grades, con func(g *Grade)) {
-	for _, n := range other {
-		// check if n in g
-		nid, err := n.Marshal()
-		if err != nil {
-			log.Warn("cannot compare")
-			return
-		}
-
-		found := false
-
-	a:
-		for _, o := range g {
-			oid, err := o.Marshal()
-			if err != nil {
-				log.Warn("cannot compare")
-				return
-			}
-			if oid == nid {
-				found = true
-				break a
-			}
-		}
-
-		if !found {
-			con(n) // send update
-		}
-	}
-}
-
-func (r *Runner) SendGradeUpdate(g *Grade) {
+func (r *Runner) SendGradeUpdate(g *dualis.Grade) {
 	log.Debugf("[%s] Got Updated Grade: %+v", g)
 
 	if r.PushoverToken != "" && r.PushoverRecipient != "" {
 		c := pushover.New(r.PushoverToken)
 		res, err := c.SendMessage(
 			pushover.NewMessageWithTitle(
-				fmt.Sprintf("🎉 In [%s] hast du %s%% erhalten.", g.Name, g.Grade),
+				fmt.Sprintf("🎉 In [%s] hast du %s Pommes erhalten.", g.CourseName, g.Grade),
 				"🫣 New Grade arrived, fat fuck!",
 			),
 			pushover.NewRecipient(r.PushoverRecipient),
@@ -153,22 +100,15 @@ func (r *Runner) SendGradeUpdate(g *Grade) {
 func (r *Runner) run() {
 	log.Debugf("[%s] Checking user ...", r.User)
 
-	var grades Grades
-	res, err := req.R().
-		SetResult(&grades).
-		SetHeaders(map[string]string{
-			"X-Auth-User": r.User,
-			"X-Auth-Pass": r.Password,
-		}).
-		Get(r.api + "/dualis/api/v1.0/grades/")
-
+	client, err := dualis.Login(r.User, r.Password)
 	if err != nil {
-		log.WithError(err).Warn("cannot request grades.")
+		log.WithError(err).Warn("cannot login to user (bad username/password?)")
 		return
 	}
 
-	if res.StatusCode/100 != 2 {
-		log.Warn("Status Code was not 2xx.")
+	grades, err := client.CourseResults()
+	if err != nil {
+		log.WithError(err).Warn("cannot request grades")
 		return
 	}
 

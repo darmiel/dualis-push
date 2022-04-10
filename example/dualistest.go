@@ -4,6 +4,7 @@ import (
 	"github.com/darmiel/dualis-push/dualis"
 	"log"
 	"os"
+	"time"
 )
 
 func main() {
@@ -16,7 +17,12 @@ func main() {
 	}
 	log.Println("Logged in. Refresh:", client.ArgumentsFromRefresh())
 
-	if err = client.CourseResults(); err != nil {
+	swStart := time.Now()
+	var exams []*dualis.Grade
+	if exams, err = client.CourseResults(); err != nil {
 		panic(err)
 	}
+	swStop := time.Now()
+
+	log.Println("Got", len(exams), "Exams! Took", swStop.Sub(swStart))
 }

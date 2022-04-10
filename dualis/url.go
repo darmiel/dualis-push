@@ -2,11 +2,11 @@ package dualis
 
 import "fmt"
 
-type DualisURL string
+type URL string
 
 const (
-	DualisBaseURL   DualisURL = "https://dualis.dhbw.de"
-	DualisScriptURL           = DualisBaseURL + "/scripts/mgrqispi.dll"
+	DualisBaseURL   URL = "https://dualis.dhbw.de"
+	DualisScriptURL     = DualisBaseURL + "/scripts/mgrqispi.dll"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 	CourseResultsPrg = "COURSERESULTS"
 )
 
-func (u DualisURL) WithArguments(args string) string {
+func (u URL) WithArguments(args string) string {
 	return string(u) + fmt.Sprintf("&ARGUMENTS=%s", args)
 }
 

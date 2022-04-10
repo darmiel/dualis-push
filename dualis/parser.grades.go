@@ -8,21 +8,12 @@ import (
 
 const GradeNotSet = "noch nicht gesetzt"
 
-type exam struct {
-	CourseID   string
-	CourseName string
-	Semester   string
-
-	Grade string
-	Type  string
-}
-
 var (
 	spaceRe = regexp.MustCompile(`\s+`)
 	semRe   = regexp.MustCompile(`\((.*)\)`)
 )
 
-func parseExamGrades(content string) (ex []*exam, err error) {
+func parseExamGrades(content string) (ex Grades, err error) {
 	body := strings.NewReader(content)
 
 	var doc *goquery.Document
@@ -68,7 +59,7 @@ func parseExamGrades(content string) (ex []*exam, err error) {
 			if grade == "" || grade == GradeNotSet {
 				return
 			}
-			ex = append(ex, &exam{
+			ex = append(ex, &Grade{
 				CourseID:   courseID,
 				CourseName: courseName,
 				Semester:   semester,

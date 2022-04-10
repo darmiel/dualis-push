@@ -1,12 +1,10 @@
 package dualis
 
 import (
-	"fmt"
 	"github.com/imroc/req/v3"
-	"log"
 )
 
-func (c *Client) CourseResults() (err error) {
+func (c *Client) CourseResults() (ex Grades, err error) {
 	var resp *req.Response
 	url := App(CourseResultsPrg, c.ArgumentsFromRefresh())
 	if resp, err = c.c.R().Get(url); err != nil {
@@ -20,8 +18,6 @@ func (c *Client) CourseResults() (err error) {
 	}
 
 	for _, semester := range semesters {
-		log.Println("Found Semester", semester.Name)
-
 		if resp, err = c.c.R().Get(semester.URL); err != nil {
 			return
 		}
@@ -32,23 +28,17 @@ func (c *Client) CourseResults() (err error) {
 		}
 
 		for _, module := range modules {
-			log.Println("  > Module:", module.Name)
-
 			if resp, err = c.c.R().Get(module.ResultsURL); err != nil {
 				return
 			}
 
-			var exams []*exam
+			var exams []*Grade
 			if exams, err = parseExamGrades(resp.String()); err != nil {
 				return
 			}
 
-			for _, ex := range exams {
-				log.Printf("    > %+v", ex)
-			}
+			ex = append(ex, exams...)
 		}
-
-		fmt.Println()
 	}
 
 	return
