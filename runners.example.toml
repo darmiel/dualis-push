@@ -19,3 +19,12 @@
             In **%course%** wurde vermutlich eine neue Note eingetragen!\n \
             👉 https://dualis.dhbw.de \
             """
+
+[[runners]]
+    User = "brown@dhbw.de"
+    Password = "msxMeMzTxf6ELu5r454w38X2khCCZLvM"
+    Cron = "0 */30 * * * *" # every 30 minutes
+    [[runners.notifiers]]
+        Type = "Pushover"
+        PushoverToken = "imuztspjkqyjzs4u3j34hn9nhdu5qm4r"
+        PushoverRecipient = "nd73gwqcp64fjqfmfg5xmfd5ygbm3tac"
