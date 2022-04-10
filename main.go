@@ -1,12 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/apex/log"
 	"github.com/apex/log/handlers/cli"
 	"github.com/darmiel/dualis-push/dualis"
-	"github.com/gregdel/pushover"
+	"github.com/darmiel/dualis-push/notifier"
 	"github.com/robfig/cron/v3"
 	"os"
 	"os/signal"
@@ -23,11 +22,12 @@ type Runner struct {
 	Password string
 	Cron     string
 
+	// used by checker
 	grades dualis.Grades
 	check  bool
 
-	PushoverToken     string
-	PushoverRecipient string
+	// notifiers
+	Notifiers []*notifier.Notifier
 }
 
 func main() {
@@ -79,26 +79,6 @@ func main() {
 	c.Stop()
 }
 
-func (r *Runner) SendGradeUpdate(g *dualis.Grade) {
-	log.Debugf("[%s] Got Updated Grade: %+v", g)
-
-	if r.PushoverToken != "" && r.PushoverRecipient != "" {
-		c := pushover.New(r.PushoverToken)
-		res, err := c.SendMessage(
-			pushover.NewMessageWithTitle(
-				fmt.Sprintf("🎉 In [%s] hast du %s Pommes erhalten.", g.CourseName, g.Grade),
-				"🫣 New Grade arrived, fat fuck!",
-			),
-			pushover.NewRecipient(r.PushoverRecipient),
-		)
-		if err != nil {
-			log.WithError(err).Warn("Cannot send pushover message")
-			return
-		}
-		log.Infof("Sent Pushover message: %+v", res)
-	}
-}
-
 func (r *Runner) run() {
 	log.Debugf("[%s] Checking user ...", r.User)
 
@@ -114,10 +94,24 @@ func (r *Runner) run() {
 		return
 	}
 
-	log.Debugf("[%s] Comparing old with new grades and looking for updates ...", r.User)
 	if r.check { // ignore first fetch
-		r.grades.CheckForNewIn(grades, r.SendGradeUpdate)
+		log.Debugf("[%s] Comparing old with new grades and looking for updates ...", r.User)
+		r.grades.CheckForNewIn(grades, r.sendGradeUpdate)
 	}
 	r.check = true
 	r.grades = grades // update new grades
+}
+
+func (r *Runner) sendGradeUpdate(g *dualis.Grade) {
+	log.Debugf("[%s] Got Updated Grade: %+v", r.User, g)
+
+	for _, n := range r.Notifiers {
+		if n.Disabled {
+			continue
+		}
+		log.Debugf("[notify@%s] sending grade", n.Type)
+		if err := n.DoGradeArrived(g); err != nil {
+			log.WithError(err).Warnf("[notify@%s]error sending notification", n.Type)
+		}
+	}
 }

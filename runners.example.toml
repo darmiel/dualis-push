@@ -1,4 +1,21 @@
 [[runners]]
-    user = "daniel@dhbw.de"
-    password = "Ha7t3Fax8VBx3sstB8svv"
-    cron = "*/10 * * * * *" # every 10s
+    User = "daniel@dh-karlsruhe.de"
+    Password = "22z4o2ZoMkzqgf2m4cCmfrH5cye3XUML"
+    Cron = "0 */10 * * * *" # check for new grades every 10 minutes
+
+    [[runners.notifiers]]
+        Type = "Pushover"
+        Disabled = true # temporaily disable a notifier
+        PushoverToken = "pgfx5j4w5dq9r2d95fr754xur24xniwd"
+        PushoverRecipient = "c5aveuvgf47b3z2bptn3c33wunnmr8oe"
+
+    [[runners.notifiers]]
+        Type = "Discord"
+        DiscordWebhookURL = "https://discord.com/api/webhooks/961920185726003913/s3inqyxkhm2jnsvf45o84mq-xt5i8v6ugkmzdd7hbc6unof65f_68z5seik9mcipuqx5"
+        [runners.notifiers.format] # override formatting
+            NewGradeMessageTitle = ""
+            NewGradeMessageBody = """ \
+            🚨 [@everyone] Neue Note wurde eingetragen\n \
+            In **%course%** wurde vermutlich eine neue Note eingetragen!\n \
+            👉 https://dualis.dhbw.de \
+            """
