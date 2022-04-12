@@ -27,7 +27,7 @@ func (c *Client) ArgumentsFromRefresh() string {
 	return str[:strings.LastIndex(str, ",")+1]
 }
 
-// fixCookies fixes the retarded "Set-cookie" header sent by dualis
+// fixCookies fixes the weird "Set-cookie" header sent by dualis
 // PR: https://github.com/golang/go/pull/52121 should fix this,
 // but it hasn't been accepted (yet)
 func fixCookies(req *req.Response) {

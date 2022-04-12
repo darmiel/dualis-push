@@ -21,11 +21,10 @@ func parseSemesterOptions(content string) (so []*semesterOption, err error) {
 	// the selector contains available semesters
 	sel := doc.Find("select").First()
 
-	// parse fucking URL
-	// there is absolutely no way this API is going to be compatible for some time
-	// really hacky as I don't really want to invest any longer in parsing this crap.
+	// parse URL
+	// there is no way this API is going to be compatible for a long time
 
-	// anyway, the onchange attribute contains an event that looks something like this:
+	// the onchange attribute contains an event that looks something like this:
 	// `reloadpage.createUrlAndReload('/scripts/mgrqispi.dll','CampusNet','COURSERESULTS','$1','$2','-N'+this.value);`
 	url, _ := sel.Attr("onchange")
 
