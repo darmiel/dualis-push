@@ -2,11 +2,12 @@ package dualis
 
 import (
 	"encoding/json"
-	"github.com/apex/log"
+	"strconv"
+	"strings"
 )
 
 type (
-	Grades []*Grade
+	Grades map[string]*Grade
 	Grade  struct {
 		CourseID   string
 		CourseName string
@@ -17,41 +18,22 @@ type (
 	}
 )
 
-func (g *Grade) Marshal() (res string, err error) {
-	var data []byte
-	if data, err = json.Marshal(g); err != nil {
-		return
+func (g *Grade) Unit() string {
+	graw := g.Grade
+	if strings.Contains(graw, ",") {
+		graw = graw[:strings.Index(graw, ",")]
 	}
-	res = string(data)
-	return
+	if grawi, err := strconv.Atoi(graw); err == nil {
+		if grawi <= 5 && grawi >= 1 {
+			return "Note"
+		} else {
+			return "%"
+		}
+	}
+	return "Pommes"
 }
 
-func (g Grades) CheckForNewIn(other Grades, con func(g *Grade)) {
-	for _, n := range other {
-		// check if n in g
-		nid, err := n.Marshal()
-		if err != nil {
-			log.Warn("cannot compare")
-			return
-		}
-
-		found := false
-
-	a:
-		for _, o := range g {
-			oid, err := o.Marshal()
-			if err != nil {
-				log.Warn("cannot compare")
-				return
-			}
-			if oid == nid {
-				found = true
-				break a
-			}
-		}
-
-		if !found {
-			con(n) // send update
-		}
-	}
+func (g *Grade) Marshal() string {
+	data, _ := json.Marshal(g)
+	return string(data)
 }

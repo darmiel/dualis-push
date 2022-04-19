@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	Func      func(notifier *Notifier, grade *dualis.Grade, repl Replacers) error
+	Func      func(notifier *Notifier, grades dualis.Grades) error
 	Replacers map[string]string
 )
 
@@ -26,8 +26,19 @@ type Notifier struct {
 
 	// Discord
 	DiscordWebhookURL string
+	DiscordUserID     string
+	DiscordAvatarHash string
 
 	Format *Format
+}
+
+func replaceGrade(message string, grade *dualis.Grade) string {
+	return replace(message, Replacers{
+		"grade":     grade.Grade,
+		"course":    grade.CourseName,
+		"course-id": grade.CourseID,
+		"semester":  grade.Semester,
+	})
 }
 
 func replace(message string, replacers Replacers) string {
@@ -44,15 +55,10 @@ func (n *Notifier) Formatting() Format {
 	return DefaultFormat
 }
 
-func (n *Notifier) DoGradeArrived(grade *dualis.Grade) error {
+func (n *Notifier) DoGradesArrived(grades dualis.Grades) error {
 	f, ok := notifiers[strings.ToLower(n.Type)]
 	if !ok {
 		return ErrUnknownNotifierType
 	}
-	return f(n, grade, Replacers{
-		"grade":     grade.Grade,
-		"course":    grade.CourseName,
-		"course-id": grade.CourseID,
-		"semester":  grade.Semester,
-	})
+	return f(n, grades)
 }

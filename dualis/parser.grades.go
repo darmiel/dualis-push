@@ -41,6 +41,7 @@ func parseExamGrades(content string) (ex Grades, err error) {
 		courseName = strings.TrimSpace(spl[1])
 	}
 
+	ex = make(Grades)
 	doc.Find("tr").Each(func(i int, selection *goquery.Selection) {
 		td := selection.Find("td")
 
@@ -59,13 +60,15 @@ func parseExamGrades(content string) (ex Grades, err error) {
 			if grade == "" || grade == GradeNotSet {
 				return
 			}
-			ex = append(ex, &Grade{
+
+			g := &Grade{
 				CourseID:   courseID,
 				CourseName: courseName,
 				Semester:   semester,
 				Grade:      grade,
 				Type:       values[1],
-			})
+			}
+			ex[g.Marshal()] = g
 		}
 	})
 

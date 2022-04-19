@@ -17,6 +17,7 @@ func (c *Client) CourseResults() (ex Grades, err error) {
 		return
 	}
 
+	ex = make(Grades)
 	for _, semester := range semesters {
 		if resp, err = c.c.R().Get(semester.URL); err != nil {
 			return
@@ -32,12 +33,14 @@ func (c *Client) CourseResults() (ex Grades, err error) {
 				return
 			}
 
-			var exams []*Grade
+			var exams Grades
 			if exams, err = parseExamGrades(resp.String()); err != nil {
 				return
 			}
 
-			ex = append(ex, exams...)
+			for k, v := range exams {
+				ex[k] = v
+			}
 		}
 	}
 

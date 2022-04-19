@@ -59,6 +59,7 @@ func main() {
 	for _, r := range cfg.Runners {
 		co := r
 
+		co.grades = make(dualis.Grades)
 		co.config = &cfg
 		if _, err := c.AddFunc(co.Cron, func() {
 			co.run()
@@ -99,15 +100,24 @@ func (r *Runner) run() {
 		return
 	}
 
-	if r.config.NotifyFirst || r.check { // ignore first fetch
-		log.Debugf("[%s] Comparing old with new grades and looking for updates ...", r.User)
-		r.grades.CheckForNewIn(grades, r.sendGradeUpdate)
+	// collect new grades
+	updates := make(dualis.Grades)
+	for m, g := range grades {
+		if _, ok := r.grades[m]; !ok {
+			r.grades[m] = g
+			updates[m] = g
+		}
 	}
-	r.check = true
-	r.grades = grades // update new grades
+
+	if len(updates) > 0 && (r.config.NotifyFirst || r.check) { // ignore first fetch
+		log.Debugf("[%s] Sending %d grade updates...", r.User, len(updates))
+		r.sendGradeUpdate(updates)
+	}
+
+	r.check = true // mark first fetch
 }
 
-func (r *Runner) sendGradeUpdate(g *dualis.Grade) {
+func (r *Runner) sendGradeUpdate(g dualis.Grades) {
 	log.Debugf("[%s] Got Updated Grade: %+v", r.User, g)
 
 	for _, n := range r.Notifiers {
@@ -115,7 +125,7 @@ func (r *Runner) sendGradeUpdate(g *dualis.Grade) {
 			continue
 		}
 		log.Debugf("[notify@%s] sending grade", n.Type)
-		if err := n.DoGradeArrived(g); err != nil {
+		if err := n.DoGradesArrived(g); err != nil {
 			log.WithError(err).Warnf("[notify@%s]error sending notification", n.Type)
 		}
 	}
