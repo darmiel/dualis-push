@@ -28,6 +28,13 @@ type Runner struct {
 
 	// notifiers
 	Notifiers []*notifier.Notifier
+	config    *config
+}
+
+// parse runner config
+type config struct {
+	NotifyFirst bool
+	Runners     []Runner
 }
 
 func main() {
@@ -42,26 +49,24 @@ func main() {
 		return
 	}
 
-	// parse runner config
-	type config struct {
-		API     string
-		Runners []Runner
-	}
 	var cfg config
 	if _, err = toml.Decode(string(data), &cfg); err != nil {
 		log.WithError(err).Fatal("cannot decode runners")
 		return
 	}
 
-	log.Infof("API: %s", cfg.API)
-
 	c := cron.New(cron.WithSeconds())
 	for _, r := range cfg.Runners {
-		if _, err := c.AddFunc(r.Cron, r.run); err != nil {
-			log.WithError(err).Fatalf("Cannot create cron func for user %s", r.User)
+		co := r
+
+		co.config = &cfg
+		if _, err := c.AddFunc(co.Cron, func() {
+			co.run()
+		}); err != nil {
+			log.WithError(err).Fatalf("Cannot create cron func for user %s", co.User)
 			return
 		}
-		log.Infof("Added runner %s [%s]", r.User, r.Cron)
+		log.Infof("Added runner %s [%s]", co.User, co.Cron)
 	}
 
 	log.Info("Started cron task. Press CTRL-C to abort.")
@@ -94,7 +99,7 @@ func (r *Runner) run() {
 		return
 	}
 
-	if r.check { // ignore first fetch
+	if r.config.NotifyFirst || r.check { // ignore first fetch
 		log.Debugf("[%s] Comparing old with new grades and looking for updates ...", r.User)
 		r.grades.CheckForNewIn(grades, r.sendGradeUpdate)
 	}
