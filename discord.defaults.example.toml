@@ -1,0 +1,36 @@
+[Payload]
+    Content = "{{ .Mention }} 👉 https://dualis.dhbw.de"
+    Username = "Hello World"
+    AvatarURL = ""
+
+[Embed]
+    Title = "{{ .Semester }}"
+    Description = "{{ .Mention }} Updates für Semester **{{ .Semester }}**"
+    Color = 5814783
+
+    [Embed.Thumbnail]
+        Url = "{{ .UserAvatarURL }}"
+
+    [Embed.Author]
+        Name = "Prof. XYZ"
+        Url = ""
+        IconUrl = ""
+
+    [Embed.Footer]
+        Text = "Waren die Noten gut? Oder sehen wir dich nächstes Semester nicht mehr? 👋"
+
+[Field]
+    Name = """
+    {{ if eq .Grade.CourseName "Schlüsselqualifikationen" }}
+        🔑
+    {{ else }}
+        {{ .Grade.CourseName }}
+    {{ end }}
+    """
+    Value = """
+    {{ with .Grade }}
+        `{{ Replace .Type "Klausurarbeit" "KA" "Intercultural Communication" "IC" }}`
+        🔰 **{{ .Grade }}** ({{ . | Unit }})
+    {{ end }}
+    """
+    Inline = true
